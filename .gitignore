@@ -1,0 +1,9 @@
+# Editor
+.vscode/*
+
+# Dependencies
+node_modules
+
+# Build
+dist
+*.tgz
