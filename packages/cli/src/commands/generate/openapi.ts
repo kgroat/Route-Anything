@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { Project, SourceFile } from 'ts-morph'
-import { getRoutersFromProgram } from '@route-anything/openapi/getRouters'
+import { getRoutersFromProgram } from '@any-router/openapi/getRouters'
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { extname, join } from 'node:path'
 import { writeFileSync } from 'node:fs'
@@ -9,7 +9,7 @@ import {
   transformerSymbol,
   defaultTransformer,
   OpenapiTransformer,
-} from '@route-anything/openapi/transformer'
+} from '@any-router/openapi/transformer'
 
 type Flags = {
   files: string

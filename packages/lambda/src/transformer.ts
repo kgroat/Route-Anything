@@ -2,11 +2,11 @@ import { OpenAPIV3_1 } from 'openapi-types'
 import {
   OpenapiTransformer,
   transformerSymbol,
-} from '@route-anything/openapi/transformer'
+} from '@any-router/openapi/transformer'
 import {
   cleanExtendedSchema,
   schemasAreSimilar,
-} from '@route-anything/openapi/jsonSchema'
+} from '@any-router/openapi/jsonSchema'
 
 import { uniqueElementsBy } from './helpers/arrayHelpers.js'
 

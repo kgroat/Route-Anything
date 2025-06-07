@@ -1,5 +1,5 @@
 {
-  "name": "@route-anything/lambda",
+  "name": "@any-router/lambda",
   "version": "0.0.2",
   "description": "",
   "type": "module",
@@ -20,16 +20,16 @@
     "@types/aws-lambda": "^8.10.149"
   },
   "devDependencies": {
-    "@route-anything/openapi": "workspace:^",
+    "@any-router/openapi": "workspace:^",
     "openapi-types": "^12.1.3",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "@route-anything/openapi": "workspace:^",
+    "@any-router/openapi": "workspace:^",
     "openapi-types": "^12.1.3"
   },
   "peerDependenciesMeta": {
-    "@route-anything/openapi": {
+    "@any-router/openapi": {
       "optional": true
     },
     "openapi-types": {

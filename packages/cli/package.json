@@ -1,5 +1,5 @@
 {
-  "name": "@route-anything/cli",
+  "name": "@any-router/cli",
   "version": "0.0.2",
   "description": "",
   "type": "module",
@@ -10,7 +10,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "test:example": "pnpm start generate openapi -f 'examples/basic/src/**/*.ts' examples/basic/src/index.ts openapi.yaml",
-    "test:lambda": "pnpm start generate openapi -f 'examples/lambda/src/**/*.ts' -t @route-anything/lambda/transformer examples/lambda/src/index.ts openapi.yaml",
+    "test:lambda": "pnpm start generate openapi -f 'examples/lambda/src/**/*.ts' -t @any-router/lambda/transformer examples/lambda/src/index.ts openapi.yaml",
     "build": "tsc"
   },
   "keywords": [],
@@ -24,17 +24,17 @@
     "yaml": "^2.8.0"
   },
   "devDependencies": {
-    "@route-anything/openapi": "workspace:^",
+    "@any-router/openapi": "workspace:^",
     "@types/node": "^22.15.30",
-    "@route-anything/lambda": "workspace:^",
+    "@any-router/lambda": "workspace:^",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "@route-anything/openapi": "workspace:^"
+    "@any-router/openapi": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@route-anything/openapi": {
+    "@any-router/openapi": {
       "optional": true
     }
   }
