@@ -3,7 +3,10 @@
   "version": "0.0.2",
   "description": "",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "bin": {
+    "any-router": "./dist/index.js"
+  },
   "exports": {
     ".": "./dist/index.js"
   },
