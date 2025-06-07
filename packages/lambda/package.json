@@ -1,0 +1,39 @@
+{
+  "name": "@route-anything/lambda",
+  "version": "0.0.2",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./transformer": "./dist/transformer.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@any-router/core": "workspace:^",
+    "@types/aws-lambda": "^8.10.149"
+  },
+  "devDependencies": {
+    "@route-anything/openapi": "workspace:^",
+    "openapi-types": "^12.1.3",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@route-anything/openapi": "workspace:^",
+    "openapi-types": "^12.1.3"
+  },
+  "peerDependenciesMeta": {
+    "@route-anything/openapi": {
+      "optional": true
+    },
+    "openapi-types": {
+      "optional": true
+    }
+  }
+}

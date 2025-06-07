@@ -1,0 +1,18 @@
+{
+  "name": "vanilla-nodejs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.15.15"
+  },
+  "dependencies": {
+    "@any-router/core": "file:../..",
+    "zod": "^3.25.53"
+  }
+}

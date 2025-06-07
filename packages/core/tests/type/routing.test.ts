@@ -1,5 +1,5 @@
 import type { Equal, Expect } from '@type-challenges/utils'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 import { ParsePath } from 'src/path'
 import { routerBuilder, RouteHandler } from 'src/routing'

@@ -1,4 +1,6 @@
-import { ZodError } from 'zod'
+import { ZodError } from 'zod/v3'
+import { $ZodError } from 'zod/v4/core'
+// import { ZodMiniError } from 'zod/v4-mini'
 import { HttpMethod } from './http.js'
 
 // BASE ERRORS
@@ -42,9 +44,12 @@ export class HttpMethodNotAllowedError extends HttpError {
 // CUSTOM ERRORS
 
 export class InvalidRequestBodyError extends HttpBadRequestError {
-  readonly details: ZodError
+  readonly details: $ZodError | ZodError
 
-  constructor(zodError: ZodError, message = 'Invalid Request Body') {
+  constructor(
+    zodError: $ZodError | ZodError,
+    message = 'Invalid Request Body',
+  ) {
     super(message, zodError)
     this.details = zodError
   }

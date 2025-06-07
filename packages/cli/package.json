@@ -1,0 +1,41 @@
+{
+  "name": "@route-anything/cli",
+  "version": "0.0.2",
+  "description": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "test:example": "pnpm start generate openapi -f 'examples/basic/src/**/*.ts' examples/basic/src/index.ts openapi.yaml",
+    "test:lambda": "pnpm start generate openapi -f 'examples/lambda/src/**/*.ts' -t @route-anything/lambda/transformer examples/lambda/src/index.ts openapi.yaml",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "commander": "^14.0.0",
+    "openapi-types": "^12.1.3",
+    "ts-morph": "^26.0.0",
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@route-anything/openapi": "workspace:^",
+    "@types/node": "^22.15.30",
+    "@route-anything/lambda": "workspace:^",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@route-anything/openapi": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "@route-anything/openapi": {
+      "optional": true
+    }
+  }
+}

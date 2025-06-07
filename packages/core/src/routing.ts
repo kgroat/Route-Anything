@@ -1,4 +1,6 @@
-import { ZodType } from 'zod'
+import { $ZodType, safeParse } from 'zod/v4/core'
+import { ZodType } from 'zod/v3'
+
 import { ParsePath, Path } from './path.js'
 import {
   HttpMethodNotAllowedError,
@@ -22,7 +24,7 @@ export type RouteHandlerWithoutBody<TRouteResult, TInput, TResult> = {
 }
 
 export type RouteHandlerWithBody<TRouteResult, TBody, TInput, TResult> = {
-  bodyValidator: ZodType<TBody>
+  bodyValidator: $ZodType<TBody> | ZodType<TBody>
   handler: HandlerFn<TRouteResult, TBody, TInput, TResult>
 }
 
@@ -57,7 +59,9 @@ export class RouterBuilderClass<
     this.handlers = {}
   }
 
-  get(handler: HandlerFn<ParsePath<TRoute>, undefined, TInput, TResult>) {
+  get<const OwnResult extends TResult>(
+    handler: HandlerFn<ParsePath<TRoute>, undefined, TInput, OwnResult>,
+  ) {
     this.handlers.GET = { handler }
     return this as RouterBuilderClass<
       TInput,
@@ -67,9 +71,9 @@ export class RouterBuilderClass<
     >
   }
 
-  post<TBody>(
-    bodyValidator: ZodType<TBody>,
-    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, TResult>,
+  post<TBody, const OwnResult extends TResult>(
+    bodyValidator: $ZodType<TBody> | ZodType<TBody>,
+    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, OwnResult>,
   ) {
     this.handlers.POST = { bodyValidator, handler }
     return this as RouterBuilderClass<
@@ -80,9 +84,9 @@ export class RouterBuilderClass<
     >
   }
 
-  put<TBody>(
-    bodyValidator: ZodType<TBody>,
-    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, TResult>,
+  put<TBody, const OwnResult extends TResult>(
+    bodyValidator: $ZodType<TBody> | ZodType<TBody>,
+    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, OwnResult>,
   ) {
     this.handlers.PUT = { bodyValidator, handler }
     return this as RouterBuilderClass<
@@ -93,9 +97,9 @@ export class RouterBuilderClass<
     >
   }
 
-  delete<TBody>(
-    bodyValidator: ZodType<TBody>,
-    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, TResult>,
+  delete<TBody, const OwnResult extends TResult>(
+    bodyValidator: $ZodType<TBody> | ZodType<TBody>,
+    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, OwnResult>,
   ) {
     this.handlers.DELETE = { bodyValidator, handler }
     return this as RouterBuilderClass<
@@ -106,9 +110,9 @@ export class RouterBuilderClass<
     >
   }
 
-  patch<TBody>(
-    bodyValidator: ZodType<TBody>,
-    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, TResult>,
+  patch<TBody, const OwnResult extends TResult>(
+    bodyValidator: $ZodType<TBody> | ZodType<TBody>,
+    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, OwnResult>,
   ) {
     this.handlers.PATCH = { bodyValidator, handler }
     return this as RouterBuilderClass<
@@ -116,6 +120,20 @@ export class RouterBuilderClass<
       TResult,
       TRoute,
       TBodies & { PATCH: TBody }
+    >
+  }
+
+  http<TMethod extends HttpMethod, TBody, const OwnResult extends TResult>(
+    method: TMethod,
+    bodyValidator: $ZodType<TBody> | ZodType<TBody>,
+    handler: HandlerFn<ParsePath<TRoute>, TBody, TInput, OwnResult>,
+  ) {
+    this.handlers[method] = { bodyValidator, handler }
+    return this as RouterBuilderClass<
+      TInput,
+      TResult,
+      TRoute,
+      TBodies & { [method in TMethod]: TBody }
     >
   }
 
@@ -141,9 +159,14 @@ export const routerBuilder =
     return new RouterBuilderClass<TInput, TResult, TRoute>(route)
   }
 
+export type CompileOptions<TResult> = {
+  pathPrefix?: string
+  errorHandler?: (err: unknown) => TResult
+}
+
 export function compileRouters<TInput, TResult>(
   routers: Router<TInput, TResult>[],
-  { pathPrefix }: { pathPrefix?: string } = {},
+  { pathPrefix, errorHandler }: CompileOptions<TResult> = {},
 ) {
   type ParsedRouteHandler = (
     method: HttpMethod,
@@ -169,17 +192,29 @@ export function compileRouters<TInput, TResult>(
 
         if (methodHandler) {
           const { bodyValidator, handler } = methodHandler
-          const bodyParseResult = bodyValidator?.safeParse(body)
+          const bodyParseResult =
+            bodyValidator &&
+            ('_zod' in bodyValidator
+              ? safeParse(bodyValidator, body)
+              : bodyValidator.safeParse(body))
 
           if (bodyParseResult?.error) {
             throw new InvalidRequestBodyError(bodyParseResult.error)
           }
 
-          return handler({
-            routeResult,
-            body: bodyParseResult?.data,
-            input,
-          } as HandlerParams<any, any, TInput>)
+          try {
+            return await handler({
+              routeResult,
+              body: bodyParseResult?.data,
+              input,
+            } as HandlerParams<any, any, TInput>)
+          } catch (err) {
+            if (errorHandler) {
+              return errorHandler(err)
+            }
+
+            throw err
+          }
         }
 
         throw new HttpMethodNotAllowedError(allowedMethods)
@@ -189,7 +224,7 @@ export function compileRouters<TInput, TResult>(
 
   const mainHandler = async (
     path: string,
-    method: HttpMethod,
+    method: string,
     body: unknown,
     input: TInput,
   ): Promise<TResult> => {

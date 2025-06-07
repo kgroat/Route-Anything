@@ -1,18 +1,16 @@
 {
-  "name": "route-anything-root",
+  "name": "basic",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "private": true,
   "scripts": {
-    "build": "pnpm -r build",
-    "test": "pnpm -r test"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
-  "devDependencies": {
-    "@changesets/cli": "^2.29.4"
+  "dependencies": {
+    "@any-router/core": "link:../../../core"
   }
 }
