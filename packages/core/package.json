@@ -1,6 +1,6 @@
 {
   "name": "@any-router/core",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A powerful but minimal router",
   "type": "module",
   "main": "dist/index.js",
