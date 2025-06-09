@@ -12,7 +12,7 @@
     "@types/node": "^22.15.15"
   },
   "dependencies": {
-    "@any-router/core": "file:../..",
+    "@any-router/core": "workspace:^",
     "zod": "^3.25.53"
   }
 }
