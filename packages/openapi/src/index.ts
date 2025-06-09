@@ -1,4 +1,6 @@
+import './patchCore.js'
 export * from './getRouters.js'
 export * from './jsdoc.js'
 export * from './jsonSchema.js'
 export * from './morphHelpers.js'
+export * from './transformer.js'

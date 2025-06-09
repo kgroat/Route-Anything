@@ -3,6 +3,63 @@ import { OpenAPIV3_1 } from 'openapi-types'
 import { getJsdocFromProperties, JSDocsByProperty } from './jsdoc.js'
 import { uniqueElementsBy } from './arrayHelpers.js'
 
+export function findAnyReferences(
+  schema: unknown,
+  pathSoFar: string,
+  found: string[] = [],
+): string[] {
+  if (!schema) {
+    return found
+  }
+
+  if (schema === anyReference) {
+    return [...found, pathSoFar]
+  }
+
+  if (typeof schema !== 'object') {
+    return found
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.flatMap((s, i) =>
+      findAnyReferences(s, `${pathSoFar}[${i}]`, found),
+    )
+  }
+
+  if ('$ref' in schema) {
+    if (schema.$ref === anyReference.$ref) {
+      return [...found, pathSoFar]
+    } else {
+      return found
+    }
+  }
+
+  return Object.entries(schema).flatMap(([p, s], i) => {
+    const propertyRequiresQuotes = !p.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/)
+    const propertyReference = propertyRequiresQuotes ? `["${p}"]` : `.${p}`
+
+    return findAnyReferences(s, `${pathSoFar}${propertyReference}`, found)
+  })
+}
+
+export const anyReference: OpenAPIV3_1.ReferenceObject = {
+  $ref: '#/components/schemas/any',
+}
+
+export const anySchema: OpenAPIV3_1.SchemaObject = {
+  oneOf: [
+    { type: 'null' },
+    { type: 'boolean' },
+    { type: 'number' },
+    { type: 'string' },
+    { type: 'array', items: { $ref: '#/components/schemas/any' } },
+    {
+      type: 'object',
+      additionalProperties: true,
+    },
+  ],
+}
+
 export function schemasAreSimilar(
   schema1: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
   schema2: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
@@ -279,6 +336,10 @@ export function tsTypeToOpenApiSchema(
         oneOf: union,
       }
     }
+  }
+
+  if (type.isAny()) {
+    return anyReference
   }
 
   console.warn('Could not convert type to OpenAPI schema', type.getText())

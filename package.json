@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
+    "build:local": "pnpm -r build:local",
     "test": "pnpm -r test"
   },
   "keywords": [],

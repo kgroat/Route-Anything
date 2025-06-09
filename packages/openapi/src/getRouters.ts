@@ -125,14 +125,14 @@ function traverseImportsForRouterBuilderCalls(file: SourceFile) {
       importDeclaration.getModuleSpecifier().getLiteralText() ===
       '@any-router/core'
     ) {
-      const routerBuilderImport = importDeclaration
+      const makeRouterBuilderImports = importDeclaration
         .getNamedImports()
-        .find((namedImport) => namedImport.getName() === 'routerBuilder')
+        .filter((namedImport) => namedImport.getName() === 'makeRouterBuilder')
 
-      if (routerBuilderImport) {
+      makeRouterBuilderImports.forEach((makeRouterBuilderImport) => {
         const name =
-          routerBuilderImport.getAliasNode() ??
-          (routerBuilderImport.getNameNode() as Identifier)
+          makeRouterBuilderImport.getAliasNode() ??
+          (makeRouterBuilderImport.getNameNode() as Identifier)
         const calls = name
           .findReferencesAsNodes()
           .map((ref) =>
@@ -185,7 +185,31 @@ function traverseImportsForRouterBuilderCalls(file: SourceFile) {
             }
           }
         })
-      }
+      })
+    } else if (
+      importDeclaration
+        .getModuleSpecifier()
+        .getLiteralText()
+        .startsWith('@any-router/') ||
+      importDeclaration
+        .getModuleSpecifier()
+        .getLiteralText()
+        .startsWith('any-router-')
+    ) {
+      const routerBuilderImport = importDeclaration
+        .getNamedImports()
+        .filter((namedImport) => namedImport.getName() === 'routerBuilder')
+
+      routerBuilderImport.forEach((routerBuilderImport) => {
+        const name =
+          routerBuilderImport.getAliasNode() ??
+          (routerBuilderImport.getNameNode() as Identifier)
+
+        builderDefinitions.push({
+          variableName: name.getText(),
+          file: file,
+        })
+      })
     }
   }
 }

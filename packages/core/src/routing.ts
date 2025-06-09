@@ -8,6 +8,7 @@ import {
   InvalidRequestBodyError,
 } from './errors.js'
 import { HttpMethod } from './http.js'
+import { setCompiledMeta } from './protected/reflect.js'
 
 export type HandlerParams<TRouteResult, TBody, TInput> = {
   input: TInput
@@ -153,21 +154,27 @@ export class RouterBuilderClass<
   }
 }
 
-export const routerBuilder =
+export const makeRouterBuilder =
   <TInput, TResult>() =>
   <TRoute extends `/${string}`>(route: TRoute) => {
     return new RouterBuilderClass<TInput, TResult, TRoute>(route)
   }
 
-export type CompileOptions<TResult> = {
+export interface CompileOptions<TResult> {
   pathPrefix?: string
-  errorHandler?: (err: unknown) => TResult
+  errorHandler: (err: unknown) => TResult
+}
+
+export interface CustomCompileOptions<TResult>
+  extends Omit<CompileOptions<TResult>, 'errorHandler'> {
+  errorHandler?: CompileOptions<TResult>['errorHandler']
 }
 
 export function compileRouters<TInput, TResult>(
   routers: Router<TInput, TResult>[],
-  { pathPrefix, errorHandler }: CompileOptions<TResult> = {},
+  options: CompileOptions<TResult>,
 ) {
+  const { pathPrefix, errorHandler } = options
   type ParsedRouteHandler = (
     method: HttpMethod,
     routeResult: unknown,
@@ -244,6 +251,10 @@ export function compileRouters<TInput, TResult>(
 
     throw new HttpNotFoundError()
   }
+
+  setCompiledMeta({
+    compileOptions: options,
+  })
 
   return mainHandler
 }

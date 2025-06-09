@@ -1,6 +1,11 @@
 import { Command } from 'commander'
+import chalk from 'chalk'
 import { Project, SourceFile } from 'ts-morph'
-import { getRoutersFromProgram } from '@any-router/openapi/getRouters'
+import {
+  anySchema,
+  findAnyReferences,
+  getRoutersFromProgram,
+} from '@any-router/openapi'
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { extname, join } from 'node:path'
 import { writeFileSync } from 'node:fs'
@@ -10,6 +15,7 @@ import {
   defaultTransformer,
   OpenapiTransformer,
 } from '@any-router/openapi/transformer'
+import { getCompiledMeta } from '@any-router/core/protected'
 
 type Flags = {
   files: string
@@ -42,15 +48,21 @@ function getFullSchema(
   tempFile: SourceFile,
   transformer: OpenapiTransformer,
 ): OpenAPIV3_1.Document {
+  const meta = getCompiledMeta()
+
+  if (!meta) {
+    throw new Error('Could not find compiled meta')
+  }
+
+  const compileOptions = meta.compileOptions
+
   const pathsObject: OpenAPIV3_1.PathsObject = {}
 
   const doc: OpenAPIV3_1.Document = {
     openapi: '3.1.0',
-    info: {
-      title: 'API',
-      version: '1.0.0',
-    },
-    components: {},
+    info: compileOptions.openapi.info,
+    servers: compileOptions.openapi.servers,
+    components: compileOptions.openapi.components,
     paths: pathsObject,
   }
 
@@ -70,10 +82,35 @@ function getFullSchema(
     }
   }
 
+  const anyRefs = findAnyReferences(pathsObject, 'paths')
+  if (anyRefs.length > 0) {
+    console.warn(
+      chalk.bold.yellow('WARNING:'),
+      chalk.yellow('Found `any` types that ended up in the schema:'),
+    )
+    anyRefs.forEach((ref) => console.warn(chalk.yellow(`  - ${ref}`)))
+    console.warn(
+      chalk.yellow(
+        '\nThese `any` types might not be correct -- try fixing them with explicit type declarations',
+      ),
+    )
+    console.warn(
+      chalk.yellow('These can lead to unsafe or unexpected behaviour'),
+    )
+
+    doc.components = {
+      ...doc.components,
+      schemas: {
+        ...doc.components?.schemas,
+        any: anySchema,
+      },
+    }
+  }
+
   return doc
 }
 
-function generateOpenApi(
+async function generateOpenApi(
   inputPath: string,
   outputPath: string,
   { files, transformer }: Flags,
@@ -82,9 +119,9 @@ function generateOpenApi(
   if (transformer) {
     let transformerModule: any
     if (transformer.startsWith('.')) {
-      transformerModule = require(join(process.cwd(), transformer))
+      transformerModule = await import(join(process.cwd(), transformer))
     } else {
-      transformerModule = require(transformer)
+      transformerModule = await import(transformer)
     }
 
     transformerObject = transformerModule.default ?? transformerModule
@@ -100,11 +137,14 @@ function generateOpenApi(
 
   const project = new Project()
   project.addSourceFilesAtPaths(files.split(','))
+
   const program = project.getSourceFileOrThrow(inputPath)
   const tempFile = project.createSourceFile(
     `__temp__${new Date().toISOString()}__.ts`,
     '',
   )
+
+  await import(program.getFilePath())
 
   const fullSchema = getFullSchema(program, tempFile, transformerObject)
 
@@ -116,6 +156,8 @@ function generateOpenApi(
   } else {
     writeFileSync(outputPath, JSON.stringify(fullSchema, null, 2))
   }
+
+  process.exit(0)
 }
 
 export default (command: Command) => {
